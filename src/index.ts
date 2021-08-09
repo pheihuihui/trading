@@ -3,17 +3,21 @@ import { Bot } from './bot'
 import { readFileSync } from 'fs'
 import { EOL } from 'os'
 
-function getKeys() {
-    let buff = readFileSync('C:\\Users\\optim\\Desktop\\key.txt')
-    let accessKey = buff.toString().split(EOL)[0].split('::')[1]
-    let secretKey = buff.toString().split(EOL)[1].split('::')[1]
-    return {
-        access: accessKey,
-        secret: secretKey
-    }
-}
+// function getKeys() {
+//     let buff = readFileSync('C:\\Users\\optim\\Desktop\\key.txt')
+//     let accessKey = buff.toString().split(EOL)[0].split('::')[1]
+//     let secretKey = buff.toString().split(EOL)[1].split('::')[1]
+//     return {
+//         access: accessKey,
+//         secret: secretKey
+//     }
+// }
 
-const keys = getKeys()
+
+const keys = {
+    access: process.env['ACCESS'],
+    secret: process.env['SECRET']
+}
 
 const hb = new huobipro({
     apiKey: keys.access,

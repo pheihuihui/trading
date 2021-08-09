@@ -1,0 +1,25 @@
+{
+  "name": "trading",
+  "version": "1.0.0",
+  "description": "...",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "run": "ts-node ./src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pheihuihui/trading.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pheihuihui/trading/issues"
+  },
+  "homepage": "https://github.com/pheihuihui/trading#readme",
+  "devDependencies": {
+    "ccxt": "^1.53.45",
+    "fp-ts": "^2.11.1",
+    "ts-node": "^10.1.0"
+  }
+}

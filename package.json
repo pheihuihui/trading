@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo 1",
-    "run": "ts-node ./src/index.ts"
+    "start": "ts-node ./src/index.ts"
   },
   "repository": {
     "type": "git",

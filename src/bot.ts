@@ -7,6 +7,11 @@ type THolding = {
 
 type THoldings = Record<string, THolding>
 
+type THoldingState = {
+    reserved: number
+    holdings: THoldings
+}
+
 type TTrending = Record<number, number>
 
 type TTrendings = Record<string, TTrending>
@@ -18,6 +23,7 @@ type TRank = {
 
 const _high = process.env['HIGH_RATE'] ?? 0.01
 const _low = process.env['LOW_RATE'] ?? - 0.01
+const _reserved = process.env['RESERVED'] ?? 10
 
 const initialTrending: () => TTrending = () => {
     let res = {} as TTrending

@@ -4,7 +4,7 @@
   "description": "...",
   "main": "index.js",
   "scripts": {
-    "test": "echo 1",
+    "test": "",
     "start": "ts-node ./src/index.ts"
   },
   "repository": {
@@ -17,9 +17,9 @@
     "url": "https://github.com/pheihuihui/trading/issues"
   },
   "homepage": "https://github.com/pheihuihui/trading#readme",
-  "devDependencies": {
+  "dependencies": {
+    "ts-node": "^10.1.0",
     "ccxt": "^1.53.45",
-    "fp-ts": "^2.11.1",
-    "ts-node": "^10.1.0"
+    "fp-ts": "^2.11.1"
   }
 }

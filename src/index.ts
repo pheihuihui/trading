@@ -20,7 +20,7 @@ const keys = {
     secret: process.env['SECRET'] ?? _keys.secret
 }
 
-const hb = new huobipro({
+export const hb = new huobipro({
     apiKey: keys.access,
     secret: keys.secret
 })
@@ -63,15 +63,3 @@ async function run() {
 // hb.options['createMarketBuyOrderRequiresPrice'] = false
 // hb.createMarketOrder('DOGE/USDT', 'buy', 40).then(x => console.log(x))
 
-
-async function testDelay() {
-    let time1 = Date.now()
-    let resp = await hb.fetchTicker('DOGE/USDT')
-    let time2 = resp.timestamp
-    let time3 = Date.now()
-    console.log(time2 - time1)
-    console.log(time3 - time1)
-    console.log('------')
-}
-
-testDelay()

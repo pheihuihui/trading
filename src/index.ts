@@ -1,4 +1,4 @@
-import { huobipro, kraken } from 'ccxt'
+import { huobipro } from 'ccxt'
 import { Bot } from './bot'
 import { readFileSync } from 'fs'
 import { EOL } from 'os'

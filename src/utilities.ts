@@ -10,6 +10,3 @@ export async function testDelay() {
         responseReceived: time3 - time1
     }
 }
-
-testDelay()
-.then(x => console.log(x))

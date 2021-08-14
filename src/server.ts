@@ -2,9 +2,10 @@ import express from "express"
 import { handlers } from "./handlers"
 
 const app = express()
+app.use(express.static('./dist/page'))
 
-app.get('/', function (req, res) {
-    res.send('hello')
+app.get('/hello', function (req, res) {
+    res.json('hello')
 })
 
 for (const hander of handlers) {

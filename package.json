@@ -5,9 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "",
+    "build:client": "node build_client.js",
     "build:server": "node build_server.js",
-    "build": "npm run build:server",
-    "start": "node ./dist_server/server.js"
+    "build": "node build_client.js && node build_server.js",
+    "start": "node ./dist/server.js"
   },
   "repository": {
     "type": "git",

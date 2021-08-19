@@ -1,4 +1,5 @@
 import express from "express"
+import { usdt_bot } from "./bot"
 import { TClientReqAndRespMap } from "./meta"
 import { testDelay } from "./utilities"
 
@@ -13,11 +14,30 @@ const query_server_delay: THandlerInfo<'/query/delay'> = {
     type: 'GET',
     handler: async (req, res) => {
         let ret = await testDelay()
-        console.log(ret)
+        res.json(ret)
+    }
+}
+
+const query_ranking: THandlerInfo<'/query/rank'> = {
+    name: '/query/rank',
+    type: 'GET',
+    handler: (req, res) => {
+        let ret = usdt_bot.rank()
+        res.json(ret)
+    }
+}
+
+const query_status: THandlerInfo<'/query/status'> = {
+    name: '/query/status',
+    type: 'GET',
+    handler: (req, res) => {
+        let ret = usdt_bot.status()
         res.json(ret)
     }
 }
 
 export const handlers: THandlerInfo<any>[] = [
-    query_server_delay
+    query_server_delay,
+    query_ranking,
+    query_status
 ]

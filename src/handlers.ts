@@ -1,7 +1,6 @@
 import express from "express"
 import { usdt_bot } from "./bot"
 import { TClientReqAndRespMap } from "./meta"
-import { testDelay } from "./utilities"
 
 type THandlerInfo<T extends keyof TClientReqAndRespMap> = {
     name: T,
@@ -12,8 +11,8 @@ type THandlerInfo<T extends keyof TClientReqAndRespMap> = {
 const query_server_delay: THandlerInfo<'/query/delay'> = {
     name: '/query/delay',
     type: 'GET',
-    handler: async (req, res) => {
-        let ret = await testDelay()
+    handler: (req, res) => {
+        let ret = usdt_bot.getDelay()
         res.json(ret)
     }
 }

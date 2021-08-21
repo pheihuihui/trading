@@ -19,6 +19,7 @@ export class Bot {
     private symbols: string[]
     private trendings: TTrendings
     private state: THoldingState
+    private delay: number
 
     private _unit = process.env['UNIT'] ?? 10
     private _high = process.env['HIGH_RATE'] ?? 0.01
@@ -33,6 +34,7 @@ export class Bot {
         this.quote = quote
         this.symbols = []
         this.trendings = {}
+        this.delay = -1
         this.state = {
             reserved: 0,
             holdings: {}
@@ -66,6 +68,10 @@ export class Bot {
     rank() {
         let rk = ranking(this.trendings)
         return rk
+    }
+
+    getDelay() {
+        return this.delay
     }
 
     start() {
@@ -114,9 +120,13 @@ export class Bot {
     }
 
     private updateTrendings() {
-        hb.fetchTickers(this.symbols)
-            .then(x => {
+        Promise.all([Date.now(), hb.fetchTickers(this.symbols)])
+            .then(vals => {
+                let ts = vals[0]
+                let x = vals[1]
                 let arr = Object.keys(x)
+                let _ts = x['BTC/USDT'].timestamp
+                this.delay = _ts - ts
                 for (const k of arr) {
                     let ticker = x[k]
                     let newprice = ticker.close

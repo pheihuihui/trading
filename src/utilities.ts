@@ -2,17 +2,6 @@ import { huobipro } from "ccxt"
 import { existsSync, readFileSync } from "fs"
 import { EOL } from "os"
 
-export async function testDelay() {
-    let time1 = Date.now()
-    let resp = await hb.fetchTicker('DOGE/USDT')
-    let time2 = resp.timestamp
-    let time3 = Date.now()
-    return {
-        responseSent: time2 - time1,
-        responseReceived: time3 - time1
-    }
-}
-
 export type THolding = {
     time_in: Date
     price_in: number

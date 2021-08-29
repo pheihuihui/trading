@@ -1,44 +1,22 @@
 import { huobipro } from "ccxt"
 import { existsSync, readFileSync } from "fs"
 import { EOL } from "os"
-
-export type THolding = {
-    time_in: Date
-    price_in: number
-    price_cur: number
-    amount: number
-}
-
-export type THoldings = Record<string, THolding>
-
-export type THoldingState = {
-    reserved: number
-    holdings: THoldings
-}
-
-export type TTrending = Record<number, number>
-
-export type TTrendings = Record<string, TTrending>
-
-export type TRank = Record<number, {
-    symbol: string
-    rate: number
-}>
+import { TTrending, TTrendings, TRank } from "./meta"
 
 export const initialTrending: () => TTrending = () => {
     let res = {} as TTrending
     for (const u of [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]) {
-        res[u] = -1
+        res[u] = { ts: 0, price: -1 }
     }
     return res
 }
 
-export const newTrending: (pre: TTrending, price?: number) => TTrending = (pre, cur) => {
+export const newTrending: (pre: TTrending, ts: number, price: number) => TTrending = (pre, ts, price) => {
     let res = {} as TTrending
     for (let u = 0; u < 9; u++) {
         res[u + 1] = pre[u]
     }
-    res[0] = cur ?? -1
+    res[0] = { ts: ts, price: price }
     return res
 }
 
@@ -50,11 +28,15 @@ export const initialTrendings: (arr: string[]) => TTrendings = arr => {
 }
 
 export const rate: (trend: TTrending) => number = trend => {
-    if (trend[9] != -1 && trend[0] != -1) {
-        return trend[0] / trend[9] - 1
-    } else {
-        return -1
+    let _9 = trend[9]
+    let _0 = trend[0]
+    if (_9.ts != -1 && _0.ts != -1) {
+        let gap = _0.ts - _9.ts
+        if (gap != 0) {
+            return _0.price / _9.price - 1
+        }
     }
+    return -1
 }
 
 export const ranking: (trends: TTrendings) => TRank = trends => {
@@ -70,7 +52,7 @@ export const ranking: (trends: TTrendings) => TRank = trends => {
         if (rt != -1) {
             res[i] = {
                 symbol: v,
-                rate: rate(trends[v])
+                rate: rt
             }
         }
     })
@@ -107,19 +89,6 @@ export const hb = new huobipro({
     secret: keys.secret
 })
 
-export async function fetchSymbols(quote: string) {
-    let markets = await hb.fetchMarkets()
-    return markets
-        .filter(z => z.quote == quote)
-        .filter(z => z.info['api-trading'] == 'enabled')
-        .map(z => z.symbol)
-}
-
-export async function fetchReserved() {
-    return hb.fetchBalance()
-        .then(x => x['USDT'].free)
-}
-
 export const added = <T>(prevArr: Array<T>, newArr: Array<T>) => {
     let res: Array<T> = []
     for (const u of newArr) {
@@ -134,4 +103,12 @@ export const removed = <T>(prevArr: Array<T>, newArr: Array<T>) => {
         if (newArr.findIndex(x => x == u) == -1) res.push(u)
     }
     return res
+}
+
+export const _floor: (val: number) => number = val => {
+    if (val > 1) {
+        return Math.floor(val)
+    } else {
+        return _floor(val * 10) / 10
+    }
 }

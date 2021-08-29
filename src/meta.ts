@@ -1,4 +1,30 @@
-import { TRank } from "./utilities"
+export type THolding = {
+    time_in?: Date
+    price_in?: number
+    price_cur?: number
+    amount: number
+    trendings: TTrending
+    rate: number
+    price_all?: number
+    orderID?: string
+    status?: 'buying' | 'holding' | 'sold' | 'selling'
+}
+
+export type THoldings = Record<string, THolding>
+
+export type THoldingState = {
+    reserved: number
+    holdings: THoldings
+}
+
+export type TTrending = Record<number, { ts: number, price: number }>
+
+export type TTrendings = Record<string, TTrending>
+
+export type TRank = Record<number, {
+    symbol: string
+    rate: number
+}>
 
 type TMethod = 'GET' | 'POST'
 type TBaseClient2Azure<TMethod, ReqPath, ReqBody, Resp> = {

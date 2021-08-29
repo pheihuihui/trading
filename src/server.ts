@@ -1,8 +1,10 @@
 import express from "express"
-import { handlers } from "./handlers"
+import { bot_usdt, handlers } from "./handlers"
 
 const app = express()
 app.use(express.static('./dist/page'))
+
+// bot_usdt.start()
 
 app.get('/hello', function (req, res) {
     res.json('hello')

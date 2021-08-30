@@ -1,13 +1,14 @@
-import { CronJob } from 'cron'
+import { CronJob, job } from 'cron'
+import { hb } from './hb'
 import { TTrendings, THoldingState, TRank, THoldings } from './meta'
 import {
     added,
-    hb,
     initialTrending,
     initialTrendings,
     newTrending,
     ranking,
-    removed
+    removed,
+    _floor
 } from "./utilities"
 
 export class Bot {
@@ -18,7 +19,6 @@ export class Bot {
     private state: THoldingState
     private prices: Record<string, number>
     private ranks: TRank
-    private pendingOrders: Set<string>
 
     private _unit: number
     private _high: number
@@ -26,6 +26,7 @@ export class Bot {
     private _reserved: number
 
     private schedule_updateSymbols: CronJob
+    private schedule_updateOrdersStatus: CronJob
     private updating_trendings: boolean
 
     constructor(quote: string) {
@@ -33,7 +34,6 @@ export class Bot {
         this.symbols = []
         this.trendings = {}
         this.prices = {}
-        this.pendingOrders = new Set()
         this.ranks = {}
         this.state = {
             reserved: 0,
@@ -51,6 +51,9 @@ export class Bot {
 
         this.schedule_updateSymbols = new CronJob('0 50 * * * *', () => {
             this.updateSymbols()
+        }, null, false)
+        this.schedule_updateOrdersStatus = new CronJob('*/5 * * * * *', () => {
+            this.queryOrders()
         }, null, false)
         this.updating_trendings = false
     }
@@ -86,6 +89,7 @@ export class Bot {
                     reserved: x.reserved
                 }
                 this.schedule_updateSymbols.start()
+                this.schedule_updateOrdersStatus.start()
                 this.updating_trendings = true
                 this.updateTrendings()
             })
@@ -205,32 +209,57 @@ export class Bot {
         }
     }
 
-    private buy(symbol: string) {
-        if (!this.state.holdings.symbol) {
-            let amount = this._unit / this.prices.symbol
-            hb.createMarketOrder(symbol, 'buy', amount)
+    private buy(curr: string) {
+        let sb = curr + '/' + this.quote
+        hb.createMarketOrder(sb, 'buy', this._unit)
+            .then(x => {
+                this.state.holdings[curr].orderID = x.id
+                this.state.holdings[curr].status = 'buying'
+            })
+    }
+
+    private sell(curr: string) {
+        let sb = curr + '/' + this.quote
+        let amt = this.state.holdings[curr].amount
+        if (amt) {
+            let _amt = _floor(amt)
+            hb.createMarketOrder(sb, 'sell', _amt)
                 .then(x => {
-                    console.log('----------')
-                    console.log(x.id)
-                    console.log(x.symbol)
-                    console.log(x.status)
-                    console.log('----------')
+                    this.state.holdings[curr].status = 'selling'
                 })
         }
     }
 
-    private sell(symbol: string) {
-        let sb = this.state.holdings.symbol
-        if (sb) {
-            let am = Math.floor(sb.amount)
-            hb.createMarketOrder(symbol, 'sell', am)
-                .then(x => x.id)
-        }
-    }
-
     private queryOrders() {
-        let symbols = Object.keys(this.state.holdings)
-
+        let currs = Object.keys(this.state.holdings)
+        for (const cur of currs) {
+            let _cur = this.state.holdings[cur]
+            let stt = _cur.status
+            let id = _cur.orderID
+            let sb = cur + '/' + this.quote
+            if (id) {
+                switch (stt) {
+                    case 'buying':
+                        hb.fetchOrder(id, sb)
+                            .then(x => {
+                                if (x.status == 'closed') _cur.status = 'holding'
+                                if (x.status == 'canceled') { delete this.state.holdings[cur] }
+                            })
+                        break
+                    case 'selling':
+                        hb.fetchOrder(id, sb)
+                            .then(x => {
+                                if (x.status == 'closed') _cur.status = 'sold'
+                            })
+                        break
+                    case 'sold':
+                        delete this.state.holdings[cur]
+                        break
+                    default:
+                        break
+                }
+            }
+        }
     }
 
 }

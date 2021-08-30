@@ -1,6 +1,3 @@
-import { huobipro } from "ccxt"
-import { existsSync, readFileSync } from "fs"
-import { EOL } from "os"
 import { TTrending, TTrendings, TRank } from "./meta"
 
 export const initialTrending: () => TTrending = () => {
@@ -58,36 +55,6 @@ export const ranking: (trends: TTrendings) => TRank = trends => {
     })
     return res
 }
-
-function getKeys() {
-    let txt = 'C:\\Users\\optim\\Desktop\\key.txt'
-    if (existsSync(txt)) {
-        let buff = readFileSync('C:\\Users\\optim\\Desktop\\key.txt')
-        let accessKey = buff.toString().split(EOL)[0].split('::')[1]
-        let secretKey = buff.toString().split(EOL)[1].split('::')[1]
-        return {
-            access: accessKey,
-            secret: secretKey
-        }
-    } else {
-        return {
-            access: 'accessKey',
-            secret: 'secretKey'
-        }
-    }
-}
-
-const _keys = getKeys()
-
-const keys = {
-    access: process.env['ACCESS'] ?? _keys.access,
-    secret: process.env['SECRET'] ?? _keys.secret
-}
-
-export const hb = new huobipro({
-    apiKey: keys.access,
-    secret: keys.secret
-})
 
 export const added = <T>(prevArr: Array<T>, newArr: Array<T>) => {
     let res: Array<T> = []

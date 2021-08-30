@@ -2,7 +2,7 @@ export type THolding = {
     time_in?: Date
     price_in?: number
     price_cur?: number
-    amount: number
+    amount?: number
     trendings: TTrending
     rate: number
     price_all?: number

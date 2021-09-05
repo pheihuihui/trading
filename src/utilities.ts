@@ -79,3 +79,11 @@ export const _floor: (val: number) => number = val => {
         return _floor(val * 10) / 10
     }
 }
+
+export function log(target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
+    const originalMethod = descriptor.value
+    descriptor.value = function (...args: any[]) {
+        console.log(`${originalMethod.name}(${args.join(', ')})`)
+    }
+    return descriptor
+}

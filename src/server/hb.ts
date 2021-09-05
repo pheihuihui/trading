@@ -30,5 +30,7 @@ const keys = {
 export const hb = new huobipro({
     apiKey: keys.access,
     secret: keys.secret,
-    createMarketBuyOrderRequiresPrice: false
+    options: {
+        createMarketBuyOrderRequiresPrice: false
+    }
 })

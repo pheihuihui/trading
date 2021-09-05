@@ -1,6 +1,6 @@
-import { CronJob, job } from 'cron'
+import { CronJob } from 'cron'
 import { hb } from './hb'
-import { TTrendings, THoldingState, TRank, THoldings } from './meta'
+import { TTrendings, THoldingState, TRank, THolding } from '../meta'
 import {
     added,
     initialTrending,
@@ -8,8 +8,9 @@ import {
     newTrending,
     ranking,
     removed,
-    _floor
-} from "./utilities"
+    _floor,
+    log
+} from "../utilities"
 
 export class Bot {
 
@@ -27,6 +28,7 @@ export class Bot {
 
     private schedule_updateSymbols: CronJob
     private schedule_updateOrdersStatus: CronJob
+    private schedule_updateHoldings: CronJob
     private updating_trendings: boolean
 
     constructor(quote: string) {
@@ -45,8 +47,8 @@ export class Bot {
         let low = process.env['LOW_RATE']
         let reserved = process.env['RESERVED']
         this._unit = unit ? Number(unit) : 10
-        this._high = high ? Number(high) : 0.01
-        this._low = low ? Number(low) : -0.005
+        this._high = high ? Number(high) : 0.015
+        this._low = low ? Number(low) : -0.009
         this._reserved = reserved ? Number(reserved) : 15
 
         this.schedule_updateSymbols = new CronJob('0 50 * * * *', () => {
@@ -54,6 +56,9 @@ export class Bot {
         }, null, false)
         this.schedule_updateOrdersStatus = new CronJob('*/5 * * * * *', () => {
             this.queryOrders()
+        }, null, false)
+        this.schedule_updateHoldings = new CronJob('*/3 * * * * *', () => {
+            this.updateHoldings()
         }, null, false)
         this.updating_trendings = false
     }
@@ -90,6 +95,7 @@ export class Bot {
                 }
                 this.schedule_updateSymbols.start()
                 this.schedule_updateOrdersStatus.start()
+                this.schedule_updateHoldings.start()
                 this.updating_trendings = true
                 this.updateTrendings()
             })
@@ -158,8 +164,32 @@ export class Bot {
             })
     }
 
+    @log
+    private updateHoldings() {
+        let ks = Object.keys(this.state.holdings)
+        hb.fetchBalance()
+            .then(x => {
+                let q = x[this.quote].free
+                if (q) {
+                    this.state.reserved = q
+                }
+                for (const k of ks) {
+                    let fr = x[k]?.free
+                    if (fr) {
+                        this.state.holdings[k].amount = fr
+                    }
+                }
+            })
+            .then(() => {
+                this.restoreReserved()
+            })
+    }
+
     private async updateTrendings() {
+        console.log(this.updating_trendings)
         while (this.updating_trendings) {
+            console.log('hi')
+            this.trade()
             await this._updateTrendings()
         }
     }
@@ -181,6 +211,9 @@ export class Bot {
                 }
                 let rk = ranking(this.trendings)
                 this.ranks = rk
+                let len = Object.keys(rk).length
+                console.log(rk[0])
+                console.log(rk[len - 1])
             }, rej => {
                 console.error(rej)
             })
@@ -188,48 +221,73 @@ export class Bot {
 
     private restoreReserved() {
         if (this.state.reserved < this._reserved) {
-            this.state.holdings
+            let ks = Object.keys(this.ranks).map(x => Number(x))
+            let ks2 = Object.keys(this.state.holdings)
+            let len = ks.length
+            let res: string | undefined
+            for (let u = len - 1; u >= 0; u--) {
+                let sb = this.ranks[u].symbol
+                let curr = sb.split('/')[0]
+                if (ks2.includes(curr)) {
+                    res = curr
+                    break
+                }
+            }
+            if (res) {
+                this.sell(res)
+            }
         }
     }
 
     private trade() {
         let ks = Object.keys(this.ranks).map(x => Number(x))
-        let lows = ks.filter(x => this.ranks[x].rate <= this._low)
-        let lows_sbs = lows.map(x => this.ranks[x].symbol)
-        let tosell = lows_sbs.filter(x => this.state.holdings[x] != undefined)
-        for (const u of tosell) {
-            this.sell(u)
-        }
-        let rk0 = this.ranks[0]
-        if (rk0) {
-            let sb = rk0.symbol
-            if (this.state.holdings[sb] == undefined) {
-                this.buy(sb)
+        for (const u of ks) {
+            let rt = this.ranks[u].rate
+            let sb = this.ranks[u].symbol
+            if (rt > this._high) {
+                if (this.state.holdings[sb] == undefined) {
+                    let curr = sb.split('/')[0]
+                    this.buy(curr)
+                }
+            } else if (rt < this._low) {
+                if (this.state.holdings[sb]) {
+                    let curr = sb.split('/')[0]
+                    this.sell(curr)
+                }
             }
         }
     }
 
+    @log
     private buy(curr: string) {
         let sb = curr + '/' + this.quote
+        if (!this.state.holdings[curr]) {
+            this.state.holdings[curr] = {} as THolding
+        }
+        this.state.holdings[curr].status = 'buying'
         hb.createMarketOrder(sb, 'buy', this._unit)
             .then(x => {
                 this.state.holdings[curr].orderID = x.id
-                this.state.holdings[curr].status = 'buying'
+            }, y => {
+                console.log(y)
             })
     }
 
+    @log
     private sell(curr: string) {
         let sb = curr + '/' + this.quote
         let amt = this.state.holdings[curr].amount
+        this.state.holdings[curr].status = 'selling'
         if (amt) {
             let _amt = _floor(amt)
             hb.createMarketOrder(sb, 'sell', _amt)
-                .then(x => {
-                    this.state.holdings[curr].status = 'selling'
+                .then(x => { }, y => {
+                    console.log(y)
                 })
         }
     }
 
+    @log
     private queryOrders() {
         let currs = Object.keys(this.state.holdings)
         for (const cur of currs) {
@@ -261,5 +319,4 @@ export class Bot {
             }
         }
     }
-
 }

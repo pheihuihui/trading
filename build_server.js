@@ -1,7 +1,7 @@
 const esbuild = require('esbuild')
 
 esbuild.buildSync({
-    entryPoints: ['./src/server.ts'],
+    entryPoints: ['./src/server/index.ts'],
     platform: 'node',
     treeShaking: 'ignore-annotations',
     outfile: './dist/server.js',

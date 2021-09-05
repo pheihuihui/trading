@@ -1,6 +1,6 @@
 import express from "express"
 import { Bot } from "./bot"
-import { TClientReqAndRespMap } from "./meta"
+import { TClientReqAndRespMap } from "../meta"
 
 export const bot_usdt = new Bot('USDT')
 
@@ -28,7 +28,17 @@ const query_status: THandlerInfo<'/query/status'> = {
     }
 }
 
+const query_holdings: THandlerInfo<'/query/holdings'> = {
+    name: '/query/holdings',
+    type: 'GET',
+    handler: (req, res) => {
+        let ret = bot_usdt.status()?.holdings
+        res.json(ret)
+    }
+}
+
 export const handlers: THandlerInfo<any>[] = [
     query_ranking,
-    query_status
+    query_status,
+    query_holdings
 ]

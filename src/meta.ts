@@ -44,10 +44,13 @@ type TQueryRank = TBaseClient2Azure<'GET', never, never, TRank>
 
 type TQueryStatus = TBaseClient2Azure<'GET', never, never, unknown>
 
+type TQueryHoldings = TBaseClient2Azure<'GET', never, never, THoldingState>
+
 type TBaseMap = {
     '/query/delay': TQueryDelay
     '/query/rank': TQueryRank
     '/query/status': TQueryStatus
+    '/query/holdings': TQueryHoldings
 }
 
 export type TClientReqAndRespMap = TFilter<TBaseMap, TBaseClient2Azure<TMethod, any, any, any>>

@@ -1,4 +1,5 @@
 const fs = require('fs')
+const esbuild = require('esbuild')
 
 const _resources_src = './src/resources'
 const _resources_dist = './dist'
@@ -14,3 +15,12 @@ if (!fs.existsSync(_resources_dist)) {
 }
 fs.copyFileSync(`${_resources_src}/${_page}`, `${_resources_dist_page}/${_page}`)
 fs.copyFileSync(`${_resources_src}/${_ico}`, `${_resources_dist_page}/favicon.ico`)
+
+esbuild.buildSync({
+    entryPoints: ['./src/client/index.ts'],
+    platform: 'browser',
+    treeShaking: 'ignore-annotations',
+    outfile: './dist/page/bundle.js',
+    tsconfig: 'tsconfig.json',
+    bundle: true
+})

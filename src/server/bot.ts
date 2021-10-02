@@ -29,6 +29,7 @@ export class Bot {
     private schedule_updateSymbols: CronJob
     private schedule_updateOrdersStatus: CronJob
     private schedule_updateHoldings: CronJob
+    private schedule_trading: CronJob
     private updating_trendings: boolean
 
     constructor(quote: string) {
@@ -59,6 +60,9 @@ export class Bot {
         }, null, false)
         this.schedule_updateHoldings = new CronJob('*/3 * * * * *', () => {
             this.updateHoldings()
+        }, null, false)
+        this.schedule_trading = new CronJob('* * * * * *', () => {
+            this.trade()
         }, null, false)
         this.updating_trendings = false
     }
@@ -96,6 +100,7 @@ export class Bot {
                 this.schedule_updateSymbols.start()
                 this.schedule_updateOrdersStatus.start()
                 this.schedule_updateHoldings.start()
+                this.schedule_trading.start()
                 this.updating_trendings = true
                 this.updateTrendings()
             })
@@ -164,7 +169,6 @@ export class Bot {
             })
     }
 
-    @log
     private updateHoldings() {
         let ks = Object.keys(this.state.holdings)
         hb.fetchBalance()
@@ -186,14 +190,12 @@ export class Bot {
     }
 
     private async updateTrendings() {
-        console.log(this.updating_trendings)
         while (this.updating_trendings) {
-            console.log('hi')
-            this.trade()
             await this._updateTrendings()
         }
     }
 
+    @log
     private async _updateTrendings() {
         return hb.fetchTickers(this.symbols)
             .then(tcks => {
@@ -241,15 +243,15 @@ export class Bot {
 
     private trade() {
         let ks = Object.keys(this.ranks).map(x => Number(x))
+        let _0 = this.ranks[0]
+        if (_0.rate > this._high) {
+            let curr = _0.symbol.split('/')[0]
+            this.buy(curr)
+        }
         for (const u of ks) {
             let rt = this.ranks[u].rate
             let sb = this.ranks[u].symbol
-            if (rt > this._high) {
-                if (this.state.holdings[sb] == undefined) {
-                    let curr = sb.split('/')[0]
-                    this.buy(curr)
-                }
-            } else if (rt < this._low) {
+            if (rt < this._low) {
                 if (this.state.holdings[sb]) {
                     let curr = sb.split('/')[0]
                     this.sell(curr)
@@ -287,7 +289,6 @@ export class Bot {
         }
     }
 
-    @log
     private queryOrders() {
         let currs = Object.keys(this.state.holdings)
         for (const cur of currs) {

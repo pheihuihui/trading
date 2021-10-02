@@ -81,9 +81,10 @@ export const _floor: (val: number) => number = val => {
 }
 
 export function log(target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>) {
-    const originalMethod = descriptor.value
+    let originalMethod = descriptor.value
     descriptor.value = function (...args: any[]) {
         console.log(`${originalMethod.name}(${args.join(', ')})`)
+        return originalMethod.apply(this, [...args])
     }
     return descriptor
 }

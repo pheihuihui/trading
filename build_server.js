@@ -3,7 +3,7 @@ const esbuild = require('esbuild')
 esbuild.buildSync({
     entryPoints: ['./src/server/index.ts'],
     platform: 'node',
-    treeShaking: 'ignore-annotations',
+    treeShaking: true,
     outfile: './dist/server.js',
     tsconfig: 'tsconfig.json',
     bundle: true

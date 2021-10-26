@@ -19,7 +19,7 @@ fs.copyFileSync(`${_resources_src}/${_ico}`, `${_resources_dist_page}/favicon.ic
 esbuild.buildSync({
     entryPoints: ['./src/client/index.ts'],
     platform: 'browser',
-    treeShaking: 'ignore-annotations',
+    treeShaking: true,
     outfile: './dist/page/bundle.js',
     tsconfig: 'tsconfig.json',
     bundle: true

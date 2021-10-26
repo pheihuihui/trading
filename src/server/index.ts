@@ -1,10 +1,11 @@
 import express from "express"
-import { bot_usdt, handlers } from "./handlers"
+import { observer } from "./bot_observer"
+import { handlers } from "./handlers"
 
 const app = express()
 app.use(express.static('./dist/page'))
 
-// bot_usdt.start()
+observer.start()
 
 app.get('/hello', function (req, res) {
     res.json('hello')
@@ -12,12 +13,13 @@ app.get('/hello', function (req, res) {
 
 for (const hander of handlers) {
     if (hander.type == 'GET') {
-        app.get(hander.name, hander.handler)
+        app.get(hander.name, hander.handler(observer))
     }
     if (hander.type == 'POST') {
-        app.post(hander.name, hander.handler)
+        app.post(hander.name, hander.handler(observer))
     }
 }
 
 const port = process.env.PORT || 30000
 app.listen(port)
+

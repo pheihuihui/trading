@@ -51,6 +51,8 @@ type TBaseMap = {
     '/query/rank': TQueryRank
     '/query/status': TQueryStatus
     '/query/holdings': TQueryHoldings
+    '/query/tops': any
+    '/clear/tops': any
 }
 
 export type TClientReqAndRespMap = TFilter<TBaseMap, TBaseClient2Azure<TMethod, any, any, any>>

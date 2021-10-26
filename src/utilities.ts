@@ -88,3 +88,7 @@ export function log(target: Object, propertyKey: string, descriptor: TypedProper
     }
     return descriptor
 }
+
+export async function _sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
